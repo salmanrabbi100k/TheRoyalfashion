@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Royal Phantom - Premium Fashion</title>
+    <!-- Icons & Fonts -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- CORE VARIABLES --- */
+        :root {
+            --primary: #d4af37; /* Gold */
+            --secondary: #1a1a1a; /* Black */
+            --bg-color: #f4f4f4;
+            --white: #ffffff;
+            --shadow-card: 0 10px 25px rgba(0,0,0,0.08);
+            --success: #28a745;
+            --discount-red: #e74c3c;
+            --season-color: #5d6d7e; /* Season Text Color */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #e0e0e0; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
+        h1, h2, h3, .brand-font { font-family: 'Playfair Display', serif; }
+
+        .app-container {
+            width: 100%; max-width: 480px; background: var(--bg-color); position: relative;
+            min-height: 100vh; overflow-x: hidden; padding-bottom: 90px; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            opacity: 0; transition: opacity 1s ease;
+        }
+
+        /* --- INTRO & SUCCESS ANIMATION STYLES --- */
+        #intro-overlay, #success-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 5000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 20px;
+        }
+        
+        #success-overlay { z-index: 6000; display: none; }
+
+        .intro-welcome, .success-msg {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem; letter-spacing: 3px; color: #fff;
+            opacity: 0; transform: translateY(20px);
+            margin-bottom: 20px;
+        }
+
+        .intro-brand, .success-user-name {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem; line-height: 1.2;
+            color: var(--primary);
+            font-weight: 700;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;
+            margin-bottom: 15px; perspective: 1000px;
+        }
+        
+        .brand-char {
+            display: inline-block;
+            opacity: 0;
+            transform-origin: center;
+            filter: blur(10px);
+        }
+
+        .intro-tagline {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem; color: #888;
+            font-style: italic;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+            padding: 10px 0; width: 0; white-space: nowrap; overflow: hidden;
+            opacity: 0;
+            margin-top: 20px;
+        }
+
+        /* Animations Keyframes */
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes assemble {
+            0% { opacity: 0; transform: translate(var(--rx), var(--ry)) rotate(var(--rr)) scale(2); filter: blur(10px); }
+            60% { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); filter: blur(0); }
+            100% { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); filter: blur(0); text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+        }
+        @keyframes expandLine { 0% { width: 0; opacity: 0; } 50% { opacity: 1; } 100% { width: 80%; opacity: 1; } }
+        @keyframes curtainExit { to { transform: translateY(-100%); opacity: 0; pointer-events: none; } }
+
+        /* --- COMPONENTS --- */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); z-index: 2000; display: none;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s ease-in-out infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Screens */
+        .screen { display: none; padding: 15px; animation: fadeIn 0.4s ease-out; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; background: var(--white); position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        .header h2 { color: var(--secondary); font-weight: 700; font-size: 1.4rem; }
+
+        /* Product Grid */
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 20px; }
+        .product-card { 
+            background: white; border-radius: 12px; 
+            box-shadow: var(--shadow-card); cursor: pointer; transition: 0.3s;
+            overflow: hidden; position: relative;
+        }
+        .p-img-container { width: 100%; height: 190px; background: #eee; overflow: hidden; position: relative; }
+        .p-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Discount Badge on Grid */
+        .discount-badge {
+            position: absolute; top: 10px; right: 10px;
+            background: var(--discount-red); color: white;
+            padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;
+            z-index: 2;
+        }
+
+        .p-details { padding: 12px; }
+        .p-name { font-weight: 600; color: #333; margin-bottom: 2px; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* NEW: Season Style */
+        .p-season { font-size: 0.7rem; color: var(--season-color); margin-bottom: 5px; font-style: italic; display: flex; align-items: center; gap: 4px;}
+        
+        .p-price-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .p-price { font-weight: 700; color: var(--secondary); font-size: 1rem; }
+        .p-old-price { text-decoration: line-through; color: #999; font-size: 0.85rem; }
+
+        /* Buttons & Forms */
+        .btn-main { 
+            width: 100%; background: var(--secondary); 
+            color: var(--primary); padding: 16px; border: none; border-radius: 12px; 
+            font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2); transition: 0.3s; text-transform: uppercase;
+        }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-gold { background: var(--primary); color: white; }
+        .form-control { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; background: #fff; margin-bottom: 12px; outline:none;}
+
+        /* Payment Grid */
+        .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .payment-option {
+            background: white; border: 2px solid #eee; border-radius: 12px; padding: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s; opacity: 0.8;
+        }
+        .payment-option img { height: 40px; object-fit: contain; margin-bottom: 8px; }
+        .payment-option span { font-size: 0.8rem; font-weight: 600; color: #555; }
+        .payment-option.active {
+            border-color: var(--primary); background: #fffbe6; opacity: 1;
+            transform: translateY(-3px); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+        }
+
+        /* --- MEDIA SLIDER --- */
+        .media-slider-container {
+            width: 100%; height: 380px; position: relative;
+            background: #000; border-radius: 15px; overflow: hidden; margin-bottom: 15px;
+        }
+        .media-slider {
+            display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+            width: 100%; height: 100%; scroll-behavior: smooth;
+        }
+        .media-slider::-webkit-scrollbar { display: none; }
+        .media-slide {
+            min-width: 100%; height: 100%;
+            scroll-snap-align: center; position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .media-slide img, .media-slide video {
+            width: 100%; height: 100%; object-fit: contain;
+        }
+        .zoom-hint {
+            position: absolute; bottom: 10px; right: 10px;
+            background: rgba(0,0,0,0.5); color: white;
+            padding: 5px 10px; border-radius: 20px; font-size: 0.8rem;
+            pointer-events: none;
+        }
+        
+        /* Zoom Modal */
+        #zoom-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 4000;
+            justify-content: center; align-items: center;
+        }
+        #zoom-img { max-width: 100%; max-height: 100%; object-fit: contain; transform: scale(1); transition: transform 0.3s; }
+        .zoom-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer; z-index: 4001; }
+
+        /* Product Details Info */
+        .pd-header-row {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px;
+        }
+        .pd-title-side { width: 65%; display: flex; align-items: flex-start; flex-direction: column; }
+        .pd-price-side { width: 35%; text-align: right; }
+        .pd-title { font-size: 1.3rem; color: var(--secondary); line-height: 1.2; margin-bottom: 5px; }
+        
+        /* Share Button Style */
+        .share-btn-icon {
+            font-size: 1.2rem; color: var(--primary); 
+            cursor: pointer; padding: 5px; transition: transform 0.2s;
+            margin-top: 5px;
+        }
+        .share-btn-icon:active { transform: scale(0.9); }
+
+        .pd-final-price { font-size: 1.5rem; color: var(--primary); font-weight: 700; display: block; }
+        .pd-old-price { font-size: 1rem; color: #999; text-decoration: line-through; display: block; margin-bottom: 2px;}
+        .pd-discount-tag { font-size: 0.8rem; color: var(--discount-red); font-weight: 600; background: #ffebeb; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+
+        /* Invoice */
+        .invoice-card {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: var(--shadow-card); border-top: 5px solid var(--secondary);
+        }
+        .inv-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; font-size: 0.9rem; }
+        .inv-row:last-child { border: none; margin-bottom: 0; }
+        .inv-label { font-weight: 600; color: #666; }
+        .inv-val { font-weight: 600; color: #333; text-align: right; width: 60%; }
+
+        /* Social & Misc */
+        .social-row { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        .social-btn { 
+            width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: white; transition: 0.3s; text-decoration: none;
+        }
+        .sb-wa { background: #25D366; }
+        .sb-tg { background: #0088cc; }
+        .sb-imo { background: #0056b3; }
+
+        .select-btn { border: 1px solid #ddd; background: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-right: 5px; display: inline-block; margin-bottom: 5px; }
+        .select-btn.active { background: var(--secondary); color: var(--primary); border-color: var(--secondary); }
+
+        /* Dropshipping Styles */
+        .ds-balance-card { background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); color: var(--primary); padding: 25px; border-radius: 15px; margin-bottom: 20px; text-align: center; }
+        .ds-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .ds-card { background: white; padding: 15px; border-radius: 12px; box-shadow: var(--shadow-card); text-align: center; }
+
+        /* Bottom Nav */
+        .bottom-nav { 
+            position: fixed; bottom: 0; width: 100%; max-width: 480px; background: white; 
+            display: flex; justify-content: space-around; padding: 12px 0; border-radius: 20px 20px 0 0; 
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 500;
+        }
+        .nav-item { text-align: center; color: #ccc; cursor: pointer; }
+        .nav-item.active { color: var(--secondary); }
+
+        /* --- SEARCH SCREEN STYLES (UPDATED) --- */
+        .search-mode-container {
+            display: flex;
+            background: #fff;
+            padding: 5px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            gap: 5px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px 5px; /* Compact padding */
+            border: none;
+            background: transparent;
+            color: #777;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.85rem;
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+        }
+
+        .mode-btn i { font-size: 1rem; }
+
+        .mode-btn.active {
+            background: var(--secondary);
+            color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .category-scroll {
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 10px;
+            padding: 10px 0;
+            justify-content: center;
+        }
+
+        .cat-btn {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            color: #555;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .cat-btn.active {
+            background: var(--secondary);
+            color: var(--primary);
+            border-color: var(--secondary);
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- ZOOM MODAL -->
+<div id="zoom-modal" onclick="this.style.display='none'">
+    <span class="zoom-close">&times;</span>
+    <img id="zoom-img" src="">
+</div>
+
+<!-- INTRO ANIMATION LAYER -->
+<div id="intro-overlay">
+    <div id="intro-welcome" class="intro-welcome">WELCOME</div>
+    <div id="intro-brand" class="intro-brand"></div>
+    <div id="intro-tagline" class="intro-tagline">Premium Fashion & Royal Lifestyle</div>
+</div>
+
+<!-- SUCCESS ANIMATION LAYER -->
+<div id="success-overlay">
+    <div id="succ-msg-1" class="success-msg">Order Placed Successfully!</div>
+    <div id="succ-msg-2" class="success-msg" style="font-size:1rem; color:#ccc;">Thank You</div>
+    <div id="succ-user-name" class="success-user-name"></div>
+    <div style="margin-top:40px; color:#d4af37; font-size:2rem;"><i class="fas fa-check-circle"></i></div>
+</div>
+
+<!-- Loader -->
+<div id="loader"><div class="spinner"></div></div>
+
+<!-- Contact Modal -->
+<div id="contact-modal" onclick="if(event.target === this) this.style.display='none'" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:3000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+    <div style="background:white; padding:30px; border-radius:20px; width:85%; max-width:320px; text-align:center;">
+        <h3 style="color:var(--secondary); margin-bottom:10px;">Contact Support</h3>
+        <p style="color:#777; margin-bottom:20px;">We are available 24/7</p>
+        <div class="social-row">
+            <a href="https://wa.me/+8801338747464" class="social-btn sb-wa"><i class="fab fa-whatsapp"></i></a>
+            <a href="https://t.me/+8801338747464" class="social-btn sb-tg"><i class="fab fa-telegram-plane"></i></a>
+            <a href="tel:01338747464" class="social-btn sb-imo" onclick="alert('Add 01338747464 on IMO')"><i class="fas fa-comment"></i></a>
+        </div>
+        <p style="margin-top:15px; font-weight:600;">01338747464</p>
+        <button onclick="document.getElementById('contact-modal').style.display='none'" style="margin-top:20px; background:transparent; border:none; color:#999; cursor:pointer;">Close</button>
+    </div>
+</div>
+
+<div id="main-app" class="app-container">
+    
+    <!-- Header -->
+    <div class="header">
+        <h2 id="page-title">Royal Phantom</h2>
+        <div onclick="window.app.openOrders()" style="cursor:pointer;">
+            <i class="fas fa-shopping-bag" style="font-size:1.3rem; color:var(--secondary);"></i>
+        </div>
+    </div>
+
+    <!-- 1. HOME -->
+    <div id="home-screen" class="screen active">
+        <div id="dynamic-banner" style="width:100%; height:200px; background-color:#333; border-radius:15px; margin-bottom:20px; position:relative; overflow:hidden;">
+            <img id="banner-img" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" style="width:100%; height:100%; object-fit:cover; position:absolute; inset:0;">
+            <div style="background:linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.1)); position:absolute; inset:0;"></div>
+            <div style="position:relative; color:white; z-index:2; height:100%; display:flex; flex-direction:column; justify-content:center; padding:20px;">
+                <h4 id="banner-sub" style="color:#d4af37; letter-spacing:2px; font-weight:400; font-size:0.9rem; text-transform:uppercase;">New Collection</h4>
+                <h1 id="banner-title" style="font-size:2rem; line-height:1.1; font-family:'Playfair Display', serif;">Royal<br>Arrivals</h1>
+            </div>
+        </div>
+        <div id="product-grid" class="product-grid"></div>
+    </div>
+
+    <!-- 2. SEARCH SCREEN (REVISED with Season) -->
+    <div id="search-screen" class="screen">
+        <div style="position: sticky; top:0; background:var(--bg-color); z-index:10; padding-bottom:5px;">
+            
+            <!-- Three Main Buttons -->
+            <div class="search-mode-container">
+                <button id="btn-mode-name" class="mode-btn active" onclick="window.app.toggleSearchMode('name')">
+                    <i class="fas fa-list"></i> প্রোডাক্ট লিস্ট
+                </button>
+                <button id="btn-mode-cat" class="mode-btn" onclick="window.app.toggleSearchMode('category')">
+                    <i class="fas fa-th-large"></i> ক্যাটাগরি
+                </button>
+                <button id="btn-mode-season" class="mode-btn" onclick="window.app.toggleSearchMode('season')">
+                    <i class="fas fa-cloud-sun-rain"></i> সিজন
+                </button>
+            </div>
+
+            <!-- UNIVERSAL SEARCH BAR -->
+            <div id="search-input-container">
+                <input type="text" id="search-input" class="form-control" placeholder="প্রোডাক্টের নাম বা ক্যাটাগরি লিখুন..." onkeyup="window.app.searchProduct(this.value)">
+            </div>
+            
+            <!-- Category Buttons Container -->
+            <div id="category-container" style="display:none; animation:fadeIn 0.3s;">
+                <p style="text-align:center; font-size:0.8rem; color:#888; margin-top:5px;">পছন্দের ক্যাটাগরি সিলেক্ট করুন</p>
+                <div id="category-filters" class="category-scroll">
+                    <!-- Buttons will be generated here -->
+                </div>
+            </div>
+
+            <!-- Season Buttons Container -->
+            <div id="season-container" style="display:none; animation:fadeIn 0.3s;">
+                <p style="text-align:center; font-size:0.8rem; color:#888; margin-top:5px;">পছন্দের সিজন সিলেক্ট করুন</p>
+                <div id="season-filters" class="category-scroll">
+                    <!-- Season Buttons will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="search-results" class="product-grid" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- 3. PROFILE -->
+    <div id="profile-screen" class="screen">
+        <div style="text-align:center; margin:30px 0;">
+            <div style="width:100px; height:100px; background:#ddd; border-radius:50%; margin:0 auto 15px; overflow:hidden; border:3px solid var(--secondary);">
+                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <h3 id="user-name">Guest User</h3>
+        </div>
+        <div style="background:white; border-radius:15px; overflow:hidden; box-shadow:var(--shadow-card);">
+            <div onclick="window.app.openOrders()" style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; cursor:pointer;">
+                <i class="fas fa-box" style="width:30px; color:var(--primary);"></i> My Orders
+            </div>
+            <div onclick="window.ds.checkAuth()" style="padding:20px; border-bottom:1px solid #eee; display:flex; align-items:center; cursor:pointer; border-left: 5px solid var(--primary);">
+                <i class="fas fa-hand-holding-usd" style="width:30px; color:var(--primary);"></i> Dropshipping Portal
+            </div>
+            <div onclick="document.getElementById('contact-modal').style.display='flex'" style="padding:20px; display:flex; align-items:center; cursor:pointer;">
+                <i class="fas fa-headset" style="width:30px; color:var(--primary);"></i> Help Center
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ORDERS -->
+    <div id="orders-screen" class="screen">
+        <div onclick="window.history.back()" style="margin-bottom:20px; cursor:pointer;"><i class="fas fa-arrow-left"></i> Back</div>
+        <h2>My Orders</h2>
+        <div id="order-list-container" style="margin-top:20px;"></div>
+    </div>
+
+    <!-- 5. PRODUCT DETAILS -->
+    <div id="product-details-screen" class="screen">
+        <div onclick="window.app.navTo('home-screen')" style="margin-bottom:15px; cursor:pointer;"><i class="fas fa-arrow-left"></i> Back</div>
+        
+        <div class="media-slider-container">
+            <div id="pd-slider" class="media-slider"></div>
+            <div class="zoom-hint"><i class="fas fa-search-plus"></i> Tap to Zoom</div>
+        </div>
+        
+        <div class="pd-header-row">
+            <div class="pd-title-side">
+                <h2 id="pd-title" class="pd-title">Product Name</h2>
+                <div id="pd-season-tag" style="font-size:0.9rem; color:#666; font-style:italic; margin-bottom:5px;"></div>
+                <!-- SHARE BUTTON -->
+                <i onclick="window.app.shareCurrentProduct()" class="fas fa-share-alt share-btn-icon" title="Share Product"></i>
+            </div>
+            <div class="pd-price-side">
+                <span id="pd-old-price" class="pd-old-price"></span>
+                <span id="pd-price" class="pd-final-price">৳0</span>
+                <span id="pd-discount-tag" class="pd-discount-tag" style="display:none;"></span>
+            </div>
+        </div>
+
+        <div style="padding-bottom:20px;">
+            <p id="pd-desc" style="color:#666; margin-bottom:20px; line-height: 1.6;">Description...</p>
+            
+            <span style="font-weight:600; display:block; margin-bottom:5px;">Size</span>
+            <div id="size-container" style="margin-bottom:15px;"></div>
+            
+            <span style="font-weight:600; display:block; margin-bottom:5px;">Color</span>
+            <div id="color-container" style="margin-bottom:20px;"></div>
+
+            <!-- Buttons -->
+            <button class="btn-main" onclick="window.app.startCheckout()">BUY NOW</button>
+            <button id="btn-ds-add" class="btn-main btn-gold" style="display:none; margin-top:10px;" onclick="window.ds.placeDropshipOrder()">PLACE DROPSHIP ORDER</button>
+        </div>
+    </div>
+
+    <!-- 6. CHECKOUT FORM -->
+    <div id="checkout-screen" class="screen">
+        <div onclick="window.app.navTo('product-details-screen')" style="margin-bottom:20px; cursor:pointer;"><i class="fas fa-arrow-left"></i> Checkout Details</div>
+        
+        <div style="background:#fffbe6; padding:15px; border-radius:10px; margin-bottom:15px; border:1px dashed #d4af37;">
+            <span style="font-size:0.8rem; font-weight:600;">Referral Code (Optional)</span>
+            <input type="text" id="co-ref" class="form-control" placeholder="Enter Ref Code" style="margin-bottom:0; margin-top:5px;">
+        </div>
+
+        <input type="text" id="co-name" class="form-control" placeholder="Full Name">
+        <input type="tel" id="co-phone" class="form-control" placeholder="Phone Number">
+        <textarea id="co-address" class="form-control" placeholder="Full Address (House, Road, Area, City)" rows="3"></textarea>
+        
+        <h4 style="margin:15px 0 10px;">Select Payment Method</h4>
+        
+        <input type="hidden" id="co-payment" value="">
+
+        <div class="payment-grid">
+            <div class="payment-option" onclick="window.app.selectPayment('bkash', this)">
+                <img src="https://i.ibb.co/5LhqdPQ/bkash.png" alt="bKash">
+                <span>bKash</span>
+            </div>
+            <div class="payment-option" onclick="window.app.selectPayment('nagad', this)">
+                <img src="https://i.ibb.co/7Nkqj35/nagad.png" alt="Nagad">
+                <span>Nagad</span>
+            </div>
+            <div class="payment-option" onclick="window.app.selectPayment('rocket', this)">
+                <img src="https://i.ibb.co/9nKKg3p/rocket.png" alt="Rocket">
+                <span>Rocket</span>
+            </div>
+            <div class="payment-option" onclick="window.app.selectPayment('cod', this)">
+                <i class="fas fa-hand-holding-usd" style="font-size:35px; color:#333; margin-bottom:8px;"></i>
+                <span>Cash on Delivery</span>
+            </div>
+        </div>
+        
+        <div id="trx-box" style="display:none; animation:fadeIn 0.5s;">
+            <div style="background:#e8f0fe; padding:10px; border-radius:8px; border:1px solid #b3d7ff; margin-bottom:10px;">
+                <p style="font-size:0.85rem; color:#004085; margin-bottom:5px;">Send Money (Personal) to:</p>
+                <b style="font-size:1.2rem; color:#0056b3;">01338747464</b>
+            </div>
+            <input type="text" id="co-trx" class="form-control" placeholder="Enter Transaction ID" style="border:2px solid var(--primary);">
+        </div>
+
+        <button class="btn-main" onclick="window.app.showReview()">PROCEED TO REVIEW</button>
+    </div>
+
+    <!-- 7. REVIEW SCREEN -->
+    <div id="review-screen" class="screen">
+        <div onclick="window.app.navTo('checkout-screen')" style="margin-bottom:20px; cursor:pointer;"><i class="fas fa-arrow-left"></i> Edit Details</div>
+        
+        <div style="text-align:center; margin-bottom:15px;">
+            <h2 style="color:var(--secondary);">Order Summary</h2>
+            <p style="color:#777; font-size:0.9rem;">Please review your order details</p>
+        </div>
+
+        <div class="invoice-card" id="invoice-content"></div>
+
+        <button class="btn-main" onclick="window.app.finalizeOrder()">CONFIRM & PLACE ORDER</button>
+    </div>
+
+    <!-- DROPSHIPPING SCREENS -->
+    <div id="ds-login-screen" class="screen">
+        <div onclick="window.app.navTo('profile-screen')" style="margin-bottom:20px; cursor:pointer;"><i class="fas fa-arrow-left"></i> Back</div>
+        <div style="text-align:center; margin-bottom:30px;">
+            <i class="fas fa-crown" style="font-size:3rem; color:var(--primary);"></i>
+            <h2>Dropshipper Login</h2>
+        </div>
+        <input type="tel" id="ds-login-phone" class="form-control" placeholder="Phone Number">
+        <input type="password" id="ds-login-pass" class="form-control" placeholder="Password">
+        <button class="btn-main" onclick="window.ds.login()">LOGIN</button>
+        <p style="text-align:center; margin-top:20px;">
+            No account? <span onclick="window.app.navTo('ds-register-screen')" style="color:var(--primary); font-weight:600; cursor:pointer;">Register</span>
+        </p>
+    </div>
+
+    <div id="ds-register-screen" class="screen">
+        <div onclick="window.app.navTo('ds-login-screen')" style="margin-bottom:20px; cursor:pointer;"><i class="fas fa-arrow-left"></i> Login</div>
+        <h2>Join as Dropshipper</h2>
+        <input type="text" id="ds-reg-email" class="form-control" placeholder="Email Address">
+        <input type="tel" id="ds-reg-phone" class="form-control" placeholder="Phone Number">
+        <input type="password" id="ds-reg-pass" class="form-control" placeholder="Password">
+        <input type="password" id="ds-reg-confirm" class="form-control" placeholder="Confirm Password">
+        <button class="btn-main" onclick="window.ds.register()">CREATE ACCOUNT</button>
+    </div>
+
+    <div id="ds-dashboard-screen" class="screen">
+        <div class="header" style="position:static; padding:0; box-shadow:none; margin-bottom:20px;">
+            <div onclick="window.app.navTo('profile-screen')" style="cursor:pointer;"><i class="fas fa-arrow-left"></i> Exit</div>
+            <h3 style="color:var(--primary);">Dashboard</h3>
+            <div onclick="window.ds.logout()" style="cursor:pointer; font-size:0.9rem; color:red;">Logout</div>
+        </div>
+        <div class="ds-balance-card">
+            <span>Total Balance</span>
+            <h1 id="ds-balance">৳0</h1>
+            <button onclick="window.app.navTo('ds-withdraw-screen')" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.5); color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">Withdraw</button>
+        </div>
+        <div style="background:#fffbe6; border:1px dashed var(--primary); padding:10px; border-radius:8px; text-align:center; margin-bottom:20px;">
+            <span>Ref Code: </span><b id="ds-ref-code">...</b> <small onclick="window.ds.copyRef()">(Copy)</small>
+        </div>
+        <div class="ds-stat-grid">
+            <div class="ds-card"><h3 id="ds-sales">0</h3><p>Sales</p></div>
+            <div class="ds-card"><h3 id="ds-sold-amt">৳0</h3><p>Sold</p></div>
+            <div class="ds-card"><h3 id="ds-completed" style="color:green;">0</h3><p>Done</p></div>
+            <div class="ds-card"><h3 id="ds-cancelled" style="color:red;">0</h3><p>Cancel</p></div>
+        </div>
+        <h3 style="margin:20px 0 10px;">Products</h3>
+        <div class="product-grid" id="ds-product-grid"></div>
+    </div>
+
+    <div id="ds-withdraw-screen" class="screen">
+        <div onclick="window.app.navTo('ds-dashboard-screen')" style="margin-bottom:20px; cursor:pointer;"><i class="fas fa-arrow-left"></i> Back</div>
+        <h2>Withdraw Funds</h2>
+        <select id="w-method" class="form-control">
+            <option value="bkash">bKash</option>
+            <option value="nagad">Nagad</option>
+        </select>
+        <input type="tel" id="w-number" class="form-control" placeholder="Account Number">
+        <input type="number" id="w-amount" class="form-control" placeholder="Amount (min 500)">
+        <button class="btn-main" onclick="window.ds.submitWithdraw()">SUBMIT REQUEST</button>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="window.app.navTo('home-screen', this)"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="window.app.navTo('search-screen', this)"><i class="fas fa-search"></i></div>
+        <div class="nav-item" onclick="window.app.navTo('profile-screen', this)"><i class="fas fa-user"></i></div>
+    </div>
+
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyB-3JLfOb3aAz_eFu6Ko98ogaupUdq1SO4",
+        authDomain: "world123123-975b6.firebaseapp.com",
+        databaseURL: "https://world123123-975b6-default-rtdb.firebaseio.com",
+        projectId: "world123123-975b6",
+        storageBucket: "world123123-975b6.firebasestorage.app",
+        messagingSenderId: "527799677210",
+        appId: "1:527799677210:web:651dfbfa367e6f31b1bca3"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.database();
+
+    // --- STATE ---
+    window.products = [];
+    window.currentProduct = null;
+    window.selectedSize = '';
+    window.selectedColor = '';
+    window.isDropshippingMode = false;
+    window.pendingOrder = null;
+    window.currentDsBalance = 0; 
+
+    // --- APP LOGIC ---
+    window.app = {
+        navTo: (id, navEl) => {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
+            if(navEl) {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                navEl.classList.add('active');
+            }
+        },
+
+        checkUserSession: () => {
+            const name = localStorage.getItem('rp_user_name');
+            const phone = localStorage.getItem('rp_user_phone');
+            
+            if(name && phone) {
+                const uNameEl = document.getElementById('user-name');
+                if(uNameEl) uNameEl.innerHTML = `${name}<br><small style="font-size:0.8rem; color:#777; font-weight:400;">${phone}</small>`;
+                
+                if(document.getElementById('co-name') && !document.getElementById('co-name').value) {
+                    document.getElementById('co-name').value = name;
+                }
+                if(document.getElementById('co-phone') && !document.getElementById('co-phone').value) {
+                    document.getElementById('co-phone').value = phone;
+                }
+            } else {
+                const uNameEl = document.getElementById('user-name');
+                if(uNameEl) uNameEl.innerText = "Guest User";
+            }
+        },
+
+        selectPayment: (method, el) => {
+            document.querySelectorAll('.payment-option').forEach(d => d.classList.remove('active'));
+            el.classList.add('active');
+            
+            document.getElementById('co-payment').value = method;
+            if(method === 'cod') {
+                document.getElementById('trx-box').style.display = 'none';
+                document.getElementById('co-trx').value = ''; 
+            } else {
+                document.getElementById('trx-box').style.display = 'block';
+            }
+        },
+
+        fetchBanner: () => {
+            db.ref('settings/banner').on('value', snapshot => {
+                const data = snapshot.val();
+                if(data) {
+                    if(data.image) document.getElementById('banner-img').src = data.image;
+                    if(data.title) document.getElementById('banner-title').innerHTML = data.title;
+                    if(data.subtitle) document.getElementById('banner-sub').innerText = data.subtitle;
+                }
+            });
+        },
+
+        fetchProducts: () => {
+            db.ref('products').once('value', snapshot => {
+                const data = snapshot.val();
+                window.products = [];
+                const grid = document.getElementById('product-grid');
+                grid.innerHTML = '';
+                
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        window.products.push({...data[key], id: key});
+                    });
+                    
+                    window.products.reverse();
+                    window.products.forEach(p => window.app.renderCard(p, grid));
+                    window.ds.renderDSGrid();
+
+                    // Generate Categories and Seasons
+                    window.app.generateCategories();
+                    window.app.generateSeasons();
+
+                    // CHECK DEEP LINK
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const sharedPid = urlParams.get('pid');
+                    
+                    if (sharedPid) {
+                        const foundProduct = window.products.find(p => p.id === sharedPid);
+                        if(foundProduct) {
+                            const intro = document.getElementById('intro-overlay');
+                            if(intro) intro.style.display = 'none';
+                            document.getElementById('main-app').style.opacity = '1';
+                            document.body.style.overflow = 'auto';
+                            window.app.openProduct(sharedPid);
+                        }
+                    }
+
+                } else {
+                    grid.innerHTML = '<p style="grid-column:span 2; text-align:center;">No Products Found</p>';
+                }
+            });
+        },
+
+        // --- UPDATED SEARCH LOGIC WITH SEASON ---
+        toggleSearchMode: (mode) => {
+            const btnName = document.getElementById('btn-mode-name');
+            const btnCat = document.getElementById('btn-mode-cat');
+            const btnSeason = document.getElementById('btn-mode-season');
+            
+            const catCont = document.getElementById('category-container');
+            const seasonCont = document.getElementById('season-container');
+            const inputCont = document.getElementById('search-input-container');
+            
+            const grid = document.getElementById('search-results');
+            const input = document.getElementById('search-input');
+
+            // Reset Result Grid
+            grid.innerHTML = '';
+
+            // Reset Buttons
+            btnName.classList.remove('active');
+            btnCat.classList.remove('active');
+            btnSeason.classList.remove('active');
+
+            if (mode === 'name') {
+                // NAME LIST MODE
+                btnName.classList.add('active');
+                
+                catCont.style.display = 'none';
+                seasonCont.style.display = 'none';
+                inputCont.style.display = 'block';
+
+                input.value = '';
+                input.placeholder = "প্রোডাক্টের নাম বা ক্যাটাগরি লিখুন...";
+                
+                window.products.forEach(p => window.app.renderCard(p, grid));
+
+            } else if (mode === 'category') {
+                // CATEGORY MODE
+                btnCat.classList.add('active');
+                
+                catCont.style.display = 'block';
+                seasonCont.style.display = 'none';
+                inputCont.style.display = 'block';
+
+                input.value = '';
+                input.placeholder = "ক্যাটাগরি খুঁজুন..."; 
+                
+                if(document.getElementById('category-filters').innerHTML === '') {
+                    window.app.generateCategories();
+                }
+                grid.innerHTML = '<p style="text-align:center; width:200%; color:#888; margin-top:20px;">উপরের থেকে একটি ক্যাটাগরি বেছে নিন</p>';
+            
+            } else if (mode === 'season') {
+                // SEASON MODE
+                btnSeason.classList.add('active');
+                
+                catCont.style.display = 'none';
+                seasonCont.style.display = 'block';
+                inputCont.style.display = 'none'; // Hide text input for season mode if we just want buttons
+
+                if(document.getElementById('season-filters').innerHTML === '') {
+                    window.app.generateSeasons();
+                }
+                grid.innerHTML = '<p style="text-align:center; width:200%; color:#888; margin-top:20px;">উপরের থেকে একটি সিজন বেছে নিন</p>';
+            }
+        },
+
+        generateCategories: () => {
+            const catContainer = document.getElementById('category-filters');
+            if(!catContainer) return;
+            
+            let allTags = new Set();
+            allTags.add('All');
+
+            window.products.forEach(p => {
+                if(p.category) {
+                    let tags = p.category.split(',').map(t => t.trim());
+                    tags.forEach(t => {
+                         if(t) allTags.add(t);
+                    });
+                }
+            });
+
+            catContainer.innerHTML = '';
+            
+            allTags.forEach(tag => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.innerText = tag;
+                btn.onclick = () => window.app.filterByCategory(tag, btn);
+                catContainer.appendChild(btn);
+            });
+        },
+
+        // NEW: GENERATE SEASON BUTTONS
+        generateSeasons: () => {
+            const seasonContainer = document.getElementById('season-filters');
+            if(!seasonContainer) return;
+            
+            let allSeasons = new Set();
+            // Optional: You can hardcode these if you want specific order: 'Winter', 'Summer', 'Rainy'
+            // allSeasons.add('Winter'); allSeasons.add('Summer'); allSeasons.add('Rainy');
+            
+            // Or dynamically fetch from products:
+            window.products.forEach(p => {
+                if(p.season) {
+                    let sTags = p.season.split(',').map(t => t.trim());
+                    sTags.forEach(t => { if(t) allSeasons.add(t); });
+                }
+            });
+
+            seasonContainer.innerHTML = '';
+
+            if(allSeasons.size === 0) {
+                seasonContainer.innerHTML = '<small>No seasons found</small>';
+                return;
+            }
+
+            allSeasons.forEach(season => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn'; // Reusing category button style
+                btn.innerText = season;
+                btn.onclick = () => window.app.filterBySeason(season, btn);
+                seasonContainer.appendChild(btn);
+            });
+        },
+
+        filterByCategory: (tag, btnElement) => {
+            document.querySelectorAll('#category-filters .cat-btn').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            const grid = document.getElementById('search-results');
+            grid.innerHTML = '';
+            const input = document.getElementById('search-input');
+            input.value = tag === 'All' ? '' : tag;
+
+            let results = [];
+            if(tag === 'All') {
+                results = window.products;
+            } else {
+                results = window.products.filter(p => 
+                    p.category && p.category.toLowerCase().includes(tag.toLowerCase())
+                );
+            }
+            
+            if(results.length > 0) {
+                results.forEach(p => window.app.renderCard(p, grid));
+            } else {
+                grid.innerHTML = '<p style="text-align:center; width:100%; margin-top:20px;">No products found in ' + tag + '</p>';
+            }
+        },
+
+        // NEW: FILTER BY SEASON
+        filterBySeason: (season, btnElement) => {
+            document.querySelectorAll('#season-filters .cat-btn').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            const grid = document.getElementById('search-results');
+            grid.innerHTML = '';
+
+            let results = window.products.filter(p => 
+                p.season && p.season.toLowerCase().includes(season.toLowerCase())
+            );
+            
+            if(results.length > 0) {
+                results.forEach(p => window.app.renderCard(p, grid));
+            } else {
+                grid.innerHTML = '<p style="text-align:center; width:200%; margin-top:20px;">No products found for ' + season + '</p>';
+            }
+        },
+
+        searchProduct: (q) => {
+            const grid = document.getElementById('search-results');
+            grid.innerHTML = '';
+            
+            if(!q) {
+                if(document.getElementById('btn-mode-name').classList.contains('active')) {
+                    window.products.forEach(p => window.app.renderCard(p, grid));
+                }
+                return;
+            }
+
+            const term = q.toLowerCase();
+            
+            const res = window.products.filter(p => {
+                const nameMatch = p.name.toLowerCase().includes(term);
+                const catMatch = p.category && p.category.toLowerCase().includes(term);
+                const seasonMatch = p.season && p.season.toLowerCase().includes(term);
+                return nameMatch || catMatch || seasonMatch;
+            });
+
+            if(res.length > 0) {
+                res.forEach(p => window.app.renderCard(p, grid));
+            } else {
+                 grid.innerHTML = '<p style="text-align:center; padding:20px;">কোনো প্রোডাক্ট পাওয়া যায়নি</p>';
+            }
+        },
+
+        renderCard: (p, container) => {
+            let img = (p.media && p.media.length > 0) ? p.media[0] : (p.image || 'https://via.placeholder.com/300');
+            let priceHtml = `<div class="p-price">৳${p.price}</div>`;
+            let discountHtml = '';
+            
+            // Season Tag Logic
+            let seasonHtml = '';
+            if(p.season) {
+                seasonHtml = `<div class="p-season"><i class="fas fa-snowflake" style="font-size:0.7rem;"></i> ${p.season}</div>`;
+            }
+
+            if(p.oldPrice && parseFloat(p.oldPrice) > parseFloat(p.price)) {
+                let discountAmt = parseFloat(p.oldPrice) - parseFloat(p.price);
+                let discountPct = Math.round((discountAmt / parseFloat(p.oldPrice)) * 100);
+                priceHtml = `
+                    <div class="p-price-row">
+                        <div class="p-price">৳${p.price}</div>
+                        <div class="p-old-price">৳${p.oldPrice}</div>
+                    </div>
+                `;
+                discountHtml = `<div class="discount-badge">-${discountPct}%</div>`;
+            }
+
+            const html = `
+            <div class="product-card" onclick="window.app.openProduct('${p.id}')">
+                ${discountHtml}
+                <div class="p-img-container"><img src="${img}"></div>
+                <div class="p-details">
+                    <div class="p-name">${p.name}</div>
+                    ${seasonHtml}
+                    ${priceHtml}
+                </div>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        },
+
+        openProduct: (id) => {
+            const p = window.products.find(x => x.id === id);
+            if(!p) return;
+            window.currentProduct = p;
+            
+            const slider = document.getElementById('pd-slider');
+            slider.innerHTML = '';
+            
+            let mediaList = [];
+            if(p.media && Array.isArray(p.media)) {
+                mediaList = p.media;
+            } else if(p.image) {
+                mediaList = [p.image];
+            }
+            
+            mediaList.forEach(src => {
+                const slide = document.createElement('div');
+                slide.className = 'media-slide';
+                if(src.includes('.mp4') || src.includes('.webm')) {
+                    slide.innerHTML = `<video src="${src}" controls playsinline></video>`;
+                } else {
+                    slide.innerHTML = `<img src="${src}" onclick="window.app.openZoom(this.src)">`;
+                }
+                slider.appendChild(slide);
+            });
+
+            document.getElementById('pd-title').innerText = p.name;
+            document.getElementById('pd-desc').innerText = p.description || '';
+            
+            // Update Season in Product Details
+            if(p.season) {
+                document.getElementById('pd-season-tag').innerHTML = `Season: ${p.season}`;
+            } else {
+                document.getElementById('pd-season-tag').innerHTML = '';
+            }
+
+            const elPrice = document.getElementById('pd-price');
+            const elOldPrice = document.getElementById('pd-old-price');
+            const elTag = document.getElementById('pd-discount-tag');
+
+            if(p.oldPrice && parseFloat(p.oldPrice) > parseFloat(p.price)) {
+                elPrice.innerText = '৳' + p.price;
+                elOldPrice.innerText = '৳' + p.oldPrice;
+                elOldPrice.style.display = 'block';
+                let saved = parseFloat(p.oldPrice) - parseFloat(p.price);
+                elTag.innerText = `Save ৳${saved}`;
+                elTag.style.display = 'inline-block';
+            } else {
+                elPrice.innerText = '৳' + p.price;
+                elOldPrice.style.display = 'none';
+                elTag.style.display = 'none';
+            }
+
+            const sC = document.getElementById('size-container'); sC.innerHTML = '';
+            let rawSizes = p.sizes || p.size; 
+            let sizes = [];
+            if (rawSizes) {
+                if (Array.isArray(rawSizes)) {
+                    sizes = rawSizes;
+                } else if (typeof rawSizes === 'string') {
+                    let cleanString = rawSizes.replace(/[\[\]"]/g, ''); 
+                    sizes = cleanString.split(',').map(s => s.trim()).filter(s => s !== '');
+                } else if (typeof rawSizes === 'number') {
+                    sizes = [rawSizes.toString()];
+                } else if (typeof rawSizes === 'object') {
+                    sizes = Object.values(rawSizes);
+                }
+            }
+            if(sizes.length === 0) sizes = ['Free Size'];
+            sizes.forEach(s => {
+                let btn = document.createElement('span');
+                btn.className = 'select-btn'; 
+                let displayText = '';
+                if(typeof s === 'object' && s !== null) {
+                    displayText = s.name || s.value || JSON.stringify(s);
+                } else {
+                    displayText = s.toString();
+                }
+                btn.innerText = displayText;
+                btn.onclick = () => {
+                    document.querySelectorAll('#size-container .select-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active'); 
+                    window.selectedSize = displayText;
+                }
+                sC.appendChild(btn);
+            });
+
+            const cC = document.getElementById('color-container'); cC.innerHTML = '';
+            let colors = p.colors || p.color || 'Standard';
+            if(!Array.isArray(colors)) colors = colors.split(',');
+            colors.forEach(c => {
+                let btn = document.createElement('span');
+                let colorName = (typeof c === 'object') ? (c.name || c.color) : c;
+                btn.className = 'select-btn'; btn.innerText = colorName;
+                btn.onclick = () => {
+                    document.querySelectorAll('#color-container .select-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active'); window.selectedColor = colorName;
+                }
+                cC.appendChild(btn);
+            });
+
+            if(window.isDropshippingMode) {
+                document.getElementById('btn-ds-add').style.display = 'block';
+                document.querySelector('.btn-main').style.display = 'none';
+            } else {
+                document.getElementById('btn-ds-add').style.display = 'none';
+                document.querySelector('.btn-main').style.display = 'block';
+            }
+            window.app.navTo('product-details-screen');
+        },
+
+        shareCurrentProduct: () => {
+            if (!window.currentProduct) return;
+            const baseUrl = window.location.href.split('?')[0];
+            const shareLink = `${baseUrl}?pid=${window.currentProduct.id}`;
+            const shareData = {
+                title: 'The Royal Phantom',
+                text: `Check out: ${window.currentProduct.name} - Price: ৳${window.currentProduct.price}`,
+                url: shareLink
+            };
+            if (navigator.share) {
+                navigator.share(shareData).catch(err => console.log('Share dismissed', err));
+            } else {
+                const tempInput = document.createElement("input");
+                document.body.appendChild(tempInput);
+                tempInput.value = shareLink;
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+                alert("Product Link Copied!\n" + shareLink);
+            }
+        },
+
+        openZoom: (src) => {
+            document.getElementById('zoom-img').src = src;
+            document.getElementById('zoom-modal').style.display = 'flex';
+        },
+
+        startCheckout: () => {
+            if(!window.selectedSize || !window.selectedColor) return alert("Please select Size & Color");
+            window.app.checkUserSession();
+            window.app.navTo('checkout-screen');
+        },
+
+        showReview: () => {
+            const name = document.getElementById('co-name').value;
+            const phone = document.getElementById('co-phone').value;
+            const addr = document.getElementById('co-address').value;
+            const method = document.getElementById('co-payment').value;
+            const trx = document.getElementById('co-trx').value;
+            const refCode = document.getElementById('co-ref').value;
+
+            if(!name || !phone || !addr) return alert("Please fill Name, Phone, and Address");
+            if(!method) return alert("Please select a payment method");
+            
+            if(method !== 'cod') {
+                if(!trx || trx.trim() === '') return alert("Please enter Transaction ID for " + method.toUpperCase());
+            }
+
+            window.pendingOrder = {
+                product: window.currentProduct.name,
+                productId: window.currentProduct.id,
+                price: window.currentProduct.price,
+                size: window.selectedSize,
+                color: window.selectedColor,
+                customerName: name,
+                customerPhone: phone,
+                address: addr,
+                paymentMethod: method,
+                trxId: (method === 'cod') ? 'COD' : trx,
+                status: 'pending',
+                date: new Date().toISOString(),
+                refCodeUsed: refCode ? refCode.trim() : null,
+                dropshipperPhone: window.isDropshippingMode ? localStorage.getItem('ds_phone') : null,
+                isDropshipOrder: window.isDropshippingMode
+            };
+
+            const invoiceHTML = `
+                <div class="inv-row"><span class="inv-label">Product:</span><span class="inv-val">${window.pendingOrder.product}</span></div>
+                <div class="inv-row"><span class="inv-label">Size:</span><span class="inv-val">${window.pendingOrder.size}</span></div>
+                <div class="inv-row"><span class="inv-label">Color:</span><span class="inv-val">${window.pendingOrder.color}</span></div>
+                <div class="inv-row"><span class="inv-label">Price:</span><span class="inv-val">৳${window.pendingOrder.price}</span></div>
+                <div style="height:10px;"></div>
+                <div class="inv-row"><span class="inv-label">Name:</span><span class="inv-val">${window.pendingOrder.customerName}</span></div>
+                <div class="inv-row"><span class="inv-label">Phone:</span><span class="inv-val">${window.pendingOrder.customerPhone}</span></div>
+                <div class="inv-row"><span class="inv-label">Address:</span><span class="inv-val">${window.pendingOrder.address}</span></div>
+                <div style="height:10px;"></div>
+                <div class="inv-row"><span class="inv-label">Method:</span><span class="inv-val" style="text-transform:uppercase;">${window.pendingOrder.paymentMethod}</span></div>
+                <div class="inv-row"><span class="inv-label">Trx ID:</span><span class="inv-val">${window.pendingOrder.trxId}</span></div>
+            `;
+
+            document.getElementById('invoice-content').innerHTML = invoiceHTML;
+            window.app.navTo('review-screen');
+        },
+
+        finalizeOrder: () => {
+            if(!window.pendingOrder) return alert("Session expired, please try again.");
+            
+            document.getElementById('loader').style.display = 'flex';
+
+            const userPhone = window.pendingOrder.customerPhone;
+            const userName = window.pendingOrder.customerName;
+            const userAddress = window.pendingOrder.address;
+
+            localStorage.setItem('rp_user_phone', userPhone);
+            localStorage.setItem('rp_user_name', userName);
+
+            db.ref('users/' + userPhone).update({
+                name: userName,
+                phone: userPhone,
+                address: userAddress,
+                lastOrder: Date.now()
+            });
+            
+            window.app.checkUserSession();
+
+            db.ref('orders').push(window.pendingOrder).then(() => {
+                document.getElementById('loader').style.display = 'none';
+                window.app.playSuccessAnim(window.pendingOrder.customerName);
+                window.isDropshippingMode = false;
+                window.pendingOrder = null;
+            }).catch(e => {
+                document.getElementById('loader').style.display = 'none';
+                alert("Error: " + e.message);
+            });
+        },
+
+        playSuccessAnim: (name) => {
+            const overlay = document.getElementById('success-overlay');
+            const nameContainer = document.getElementById('succ-user-name');
+            const msg1 = document.getElementById('succ-msg-1');
+            const msg2 = document.getElementById('succ-msg-2');
+            
+            overlay.style.display = 'flex';
+            nameContainer.innerHTML = ''; 
+
+            name.split('').forEach((char, index) => {
+                const span = document.createElement('span');
+                span.innerText = char === ' ' ? '\u00A0' : char;
+                span.className = 'brand-char';
+                
+                const rx = (Math.random() * 200 - 100) + 'px';
+                const ry = (Math.random() * 200 - 100) + 'px';
+                const rr = (Math.random() * 360 - 180) + 'deg';
+                
+                span.style.setProperty('--rx', rx);
+                span.style.setProperty('--ry', ry);
+                span.style.setProperty('--rr', rr);
+                span.style.animation = `assemble 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards`;
+                span.style.animationDelay = '1s';
+                nameContainer.appendChild(span);
+            });
+
+            msg1.style.animation = 'fadeUp 1s ease forwards';
+            setTimeout(() => { msg2.style.animation = 'fadeUp 1s ease forwards'; }, 500);
+
+            setTimeout(() => {
+                overlay.style.animation = 'curtainExit 0.8s ease forwards';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    overlay.style.animation = '';
+                    window.app.navTo('home-screen');
+                }, 800);
+            }, 6000);
+        },
+
+        openOrders: () => {
+             const phone = localStorage.getItem('rp_user_phone');
+             window.app.navTo('orders-screen');
+             
+             const list = document.getElementById('order-list-container');
+             
+             if(!phone) {
+                 list.innerHTML = `
+                    <div style="text-align:center; margin-top:50px; color:#777;">
+                        <i class="fas fa-shopping-basket" style="font-size:3rem; margin-bottom:15px; opacity:0.5;"></i>
+                        <p>No order history found.</p>
+                        <p style="font-size:0.85rem;">Place an order to automatically create an account.</p>
+                    </div>`;
+                 return;
+             }
+
+             list.innerHTML = '<div style="text-align:center; margin-top:20px;"><div class="spinner"></div></div>';
+
+             db.ref('orders').orderByChild('customerPhone').equalTo(phone).on('value', snapshot => {
+                 list.innerHTML = '';
+                 const data = snapshot.val();
+                 
+                 if(data) {
+                     const orders = Object.values(data).reverse(); 
+                     
+                     orders.forEach(o => {
+                         let statusColor = o.status === 'pending' ? '#f39c12' : (o.status === 'completed' ? 'green' : 'red');
+                         
+                         const html = `
+                         <div style="background:white; padding:15px; border-radius:10px; margin-bottom:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding-bottom:8px; margin-bottom:8px;">
+                                <span style="font-weight:700; color:#333;">${o.product}</span>
+                                <span style="color:${statusColor}; font-weight:600; text-transform:uppercase; font-size:0.8rem;">${o.status}</span>
+                            </div>
+                            <div style="font-size:0.9rem; color:#666;">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span>Price: ৳${o.price}</span>
+                                    <span>${o.paymentMethod.toUpperCase()}</span>
+                                </div>
+                                <div style="margin-top:2px;">Size: ${o.size} | Color: ${o.color}</div>
+                                <div style="font-size:0.8rem; margin-top:8px; color:#999; text-align:right;">${new Date(o.date).toLocaleDateString()}</div>
+                            </div>
+                         </div>`;
+                         list.insertAdjacentHTML('beforeend', html);
+                     });
+                 } else {
+                     list.innerHTML = '<p style="text-align:center;">No orders found.</p>';
+                 }
+             });
+        }
+    };
+
+    // --- DROPSHIPPING LOGIC ---
+    window.ds = {
+        checkAuth: () => {
+            const phone = localStorage.getItem('ds_phone');
+            if(phone) window.ds.loadDashboard(phone);
+            else window.app.navTo('ds-login-screen');
+        },
+        register: () => {
+            const phone = document.getElementById('ds-reg-phone').value;
+            const pass = document.getElementById('ds-reg-pass').value;
+            const confirm = document.getElementById('ds-reg-confirm').value;
+            const email = document.getElementById('ds-reg-email').value;
+
+            if(!phone || !pass || !email) return alert("Fill all details");
+            if(pass !== confirm) return alert("Passwords do not match");
+
+            document.getElementById('loader').style.display = 'flex';
+            db.ref('dropshippers/' + phone).once('value', s => {
+                if(s.exists()) {
+                    document.getElementById('loader').style.display = 'none';
+                    alert("Account exists.");
+                } else {
+                    const refCode = "RP-" + phone.slice(-4) + Math.random().toString(36).substring(2,4).toUpperCase();
+                    db.ref('dropshippers/' + phone).set({
+                        email: email, password: pass, phone: phone, refCode: refCode, joinedAt: Date.now()
+                    }).then(() => {
+                        document.getElementById('loader').style.display = 'none';
+                        alert("Registration Successful!");
+                        window.app.navTo('ds-login-screen');
+                    });
+                }
+            });
+        },
+        login: () => {
+            const phone = document.getElementById('ds-login-phone').value;
+            const pass = document.getElementById('ds-login-pass').value;
+            if(!phone || !pass) return alert("Enter Phone & Password");
+            document.getElementById('loader').style.display = 'flex';
+            db.ref('dropshippers/' + phone).once('value', s => {
+                document.getElementById('loader').style.display = 'none';
+                if(s.exists() && s.val().password === pass) {
+                    localStorage.setItem('ds_phone', phone);
+                    window.ds.loadDashboard(phone);
+                } else alert("Invalid Credentials");
+            });
+        },
+        logout: () => {
+            localStorage.removeItem('ds_phone');
+            window.isDropshippingMode = false;
+            window.app.navTo('profile-screen');
+        },
+        
+        loadDashboard: (phone) => {
+            window.app.navTo('ds-dashboard-screen');
+            document.getElementById('loader').style.display = 'flex';
+            
+            db.ref('dropshippers/' + phone).once('value', s => {
+                if (!s.exists() || s.val() === null) {
+                    document.getElementById('loader').style.display = 'none';
+                    alert("Account error or not found. Please login again.");
+                    window.ds.logout(); 
+                    return;
+                }
+
+                const data = s.val();
+                document.getElementById('ds-ref-code').innerText = data.refCode || 'N/A';
+                
+                db.ref('orders').orderByChild('dropshipperPhone').equalTo(phone).once('value', oSnap => {
+                     let sales = 0; let amt = 0;
+                     if(oSnap.exists() && oSnap.val()) {
+                         sales = Object.keys(oSnap.val()).length;
+                         Object.values(oSnap.val()).forEach(o => { 
+                             if(o.status === 'completed') amt += parseFloat(o.price); 
+                         });
+                     }
+                     
+                     window.currentDsBalance = (amt * 0.01);
+
+                     document.getElementById('ds-sales').innerText = sales;
+                     document.getElementById('ds-sold-amt').innerText = '৳' + amt;
+                     document.getElementById('ds-balance').innerText = '৳' + window.currentDsBalance.toFixed(2);
+                     document.getElementById('loader').style.display = 'none';
+                });
+            }).catch(e => {
+                console.error(e);
+                document.getElementById('loader').style.display = 'none';
+            });
+            
+            window.ds.renderDSGrid();
+        },
+
+        renderDSGrid: () => {
+            const grid = document.getElementById('ds-product-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            window.products.forEach(p => {
+                let img = (p.media && p.media.length > 0) ? p.media[0] : (p.image || '');
+                const html = `
+                <div class="product-card" onclick="window.ds.openForDropship('${p.id}')">
+                    <div class="p-img-container"><img src="${img}"></div>
+                    <div class="p-details"><div class="p-name">${p.name}</div><div class="p-price">৳${p.price}</div></div>
+                </div>`;
+                grid.insertAdjacentHTML('beforeend', html);
+            });
+        },
+        openForDropship: (id) => {
+            window.isDropshippingMode = true;
+            window.app.openProduct(id);
+        },
+        placeDropshipOrder: () => {
+            if(!window.selectedSize || !window.selectedColor) return alert("Select options");
+            window.app.navTo('checkout-screen');
+        },
+        copyRef: () => {
+            navigator.clipboard.writeText(document.getElementById('ds-ref-code').innerText);
+            alert("Code Copied!");
+        },
+        
+        submitWithdraw: () => {
+            const phone = localStorage.getItem('ds_phone');
+            if(!phone) return;
+
+            const method = document.getElementById('w-method').value;
+            const number = document.getElementById('w-number').value;
+            const amountVal = document.getElementById('w-amount').value;
+            const amount = parseFloat(amountVal);
+
+            if(!number || !amount) {
+                return alert("Please fill Account Number and Amount.");
+            }
+
+            if(amount < 500) {
+                return alert("Minimum withdrawal amount is 500 BDT.");
+            }
+
+            if(window.currentDsBalance < 500) {
+                return alert("Insufficient Balance! You need at least 500 BDT to withdraw.");
+            }
+
+            if(amount > window.currentDsBalance) {
+                return alert("You cannot withdraw more than your current balance.");
+            }
+
+            document.getElementById('loader').style.display = 'flex';
+
+            const withdrawData = {
+                dropshipperPhone: phone,
+                method: method,
+                accountNumber: number,
+                amount: amount,
+                status: 'pending',
+                requestDate: new Date().toISOString()
+            };
+
+            db.ref('withdrawals').push(withdrawData).then(() => {
+                document.getElementById('loader').style.display = 'none';
+                alert("Withdraw request submitted successfully!");
+                document.getElementById('w-number').value = '';
+                document.getElementById('w-amount').value = '';
+                window.app.navTo('ds-dashboard-screen');
+            }).catch(e => {
+                document.getElementById('loader').style.display = 'none';
+                alert("Error submitting request: " + e.message);
+            });
+        }
+    };
+
+    function playIntro() {
+        const brandText = "The Royal Phantom";
+        const brandContainer = document.getElementById('intro-brand');
+        brandContainer.innerHTML = '';
+        
+        brandText.split('').forEach((char, index) => {
+            const span = document.createElement('span');
+            span.innerText = char === ' ' ? '\u00A0' : char;
+            span.className = 'brand-char';
+            
+            const rx = (Math.random() * 200 - 100) + 'px';
+            const ry = (Math.random() * 200 - 100) + 'px';
+            const rr = (Math.random() * 360 - 180) + 'deg';
+            
+            span.style.setProperty('--rx', rx);
+            span.style.setProperty('--ry', ry);
+            span.style.setProperty('--rr', rr);
+            span.style.animation = `assemble 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards`;
+            span.style.animationDelay = (1.5 + (Math.random() * 0.5)) + 's';
+            
+            brandContainer.appendChild(span);
+        });
+
+        const welcome = document.getElementById('intro-welcome');
+        const tagline = document.getElementById('intro-tagline');
+        const overlay = document.getElementById('intro-overlay');
+        const mainApp = document.getElementById('main-app');
+
+        welcome.style.animation = 'fadeUp 1s ease forwards';
+        setTimeout(() => { tagline.style.animation = 'expandLine 1.5s ease forwards'; }, 3000);
+        setTimeout(() => {
+            overlay.style.animation = 'curtainExit 1s ease forwards';
+            mainApp.style.opacity = '1';
+            document.body.style.overflow = 'auto';
+        }, 5000);
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasPid = urlParams.get('pid');
+
+        if (!hasPid) {
+            playIntro(); 
+        } else {
+            document.getElementById('intro-overlay').style.display = 'none';
+        }
+
+        window.app.fetchProducts();
+        window.app.fetchBanner();
+        window.app.checkUserSession();
+    };
+</script>
+</body>
+</html>
